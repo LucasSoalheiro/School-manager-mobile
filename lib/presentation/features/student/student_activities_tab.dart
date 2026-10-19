@@ -111,8 +111,18 @@ class _StudentActivitiesTabState extends State<StudentActivitiesTab>
                     icon: Icon(Icons.upload, color: AppColors.success),
                     tooltip: 'Entregar',
                     onPressed: () async {
+                      if (grade == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Registro de nota pendente ainda não disponível para esta atividade.',
+                            ),
+                          ),
+                        );
+                        return;
+                      }
                       final success = await widget.viewModel.submitActivity(
-                        grade!.id,
+                        grade.id,
                       );
                       if (success && context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(

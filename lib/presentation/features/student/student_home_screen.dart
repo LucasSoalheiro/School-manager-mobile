@@ -48,7 +48,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
   List<Widget> get _tabs => [
     StudentDashboardTab(
       viewModel: _viewModel,
-      onTabChange: (i) => _onTabChanged(i + 1),
+      onTabChange: (i) => _onTabChanged(i),
     ),
     StudentClassesTab(
       viewModel: _viewModel,

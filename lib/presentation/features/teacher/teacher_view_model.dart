@@ -45,7 +45,17 @@ class TeacherViewModel extends ChangeNotifier {
         teacherId,
         role: 'teacher',
       );
-      _classes = profile.schoolClasses ?? [];
+      final rawClasses = profile.schoolClasses ?? [];
+      final loadedClasses = <SchoolClassEntity>[];
+      for (final c in rawClasses) {
+        try {
+          final fullClass = await schoolClassRepository.getClassById(c.id);
+          loadedClasses.add(fullClass);
+        } catch (_) {
+          loadedClasses.add(c);
+        }
+      }
+      _classes = loadedClasses;
 
       final allGrades = await gradeRepository.getGradesByTeacher(teacherId);
       _pendingGrades = allGrades

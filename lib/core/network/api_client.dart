@@ -178,6 +178,10 @@ class ApiClient {
       return decodedBody;
     }
 
+    if (response.statusCode == 401) {
+      unawaited(_sessionStorage.clearSession());
+    }
+
     // Processamento de mensagens de erro da API
     String errorMessage = 'Ocorreu um erro na requisição (${response.statusCode})';
     List<dynamic>? issues;

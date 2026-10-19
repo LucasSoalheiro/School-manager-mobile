@@ -9,6 +9,8 @@ class GradeEntity {
   final String status; // 'pending' | 'submitted' | 'graded'
   final String? submittedAt;
   final String? feedback;
+  final String? activityTitle;
+  final String? className;
 
   const GradeEntity({
     required this.id,
@@ -18,11 +20,14 @@ class GradeEntity {
     required this.status,
     this.submittedAt,
     this.feedback,
+    this.activityTitle,
+    this.className,
   });
 
-  // Placeholder getters for UI compatibility
-  SchoolClassEntity? get schoolClass => null;
-  ActivityEntity? get activity => null;
+  SchoolClassEntity? get schoolClass =>
+      className != null ? SchoolClassEntity(id: '', className: className!) : null;
+  ActivityEntity? get activity =>
+      activityTitle != null ? ActivityEntity(id: activityId, title: activityTitle!, description: '') : null;
 
   bool get isPending => status == 'pending';
   bool get isSubmitted => status == 'submitted';

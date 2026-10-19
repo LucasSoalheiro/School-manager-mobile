@@ -8,6 +8,8 @@ class GradeModel {
   final String status;
   final String? submittedAt;
   final String? feedback;
+  final String? activityTitle;
+  final String? className;
 
   GradeModel({
     required this.id,
@@ -17,6 +19,8 @@ class GradeModel {
     required this.status,
     this.submittedAt,
     this.feedback,
+    this.activityTitle,
+    this.className,
   });
 
   factory GradeModel.fromJson(Map<String, dynamic> json) {
@@ -37,6 +41,8 @@ class GradeModel {
       status: json['status'] as String? ?? 'pending',
       submittedAt: json['submitted_at'] as String?,
       feedback: json['feedback'] as String?,
+      activityTitle: json['activity_title'] as String?,
+      className: json['class_name'] as String?,
     );
   }
 
@@ -49,6 +55,8 @@ class GradeModel {
       'status': status,
       'submitted_at': submittedAt,
       'feedback': feedback,
+      'activity_title': activityTitle,
+      'class_name': className,
     };
   }
 
@@ -61,6 +69,8 @@ class GradeModel {
       status: status,
       submittedAt: submittedAt,
       feedback: feedback,
+      activityTitle: activityTitle,
+      className: className,
     );
   }
 }
