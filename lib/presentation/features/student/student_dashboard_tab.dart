@@ -30,6 +30,13 @@ class StudentDashboardTab extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (viewModel.errorMessage != null) ...[
+              Text(
+                viewModel.errorMessage!,
+                style: const TextStyle(color: AppColors.error, fontSize: 13),
+              ),
+              const SizedBox(height: 12),
+            ],
             // Banner de boas-vindas
             Container(
               padding: const EdgeInsets.all(20),
@@ -158,7 +165,18 @@ class StudentDashboardTab extends StatelessWidget {
                 message: 'Parabéns! Você não tem atividades ou turmas pendentes no momento.',
               )
             else
-              ...viewModel.allActivities.take(3).map((activity) {
+              // Próximas atividades = pendentes, ordenadas pelo prazo
+              ...(viewModel.allActivities.toList()
+                    ..sort((a, b) {
+                      if (a.deliveryDate == null && b.deliveryDate == null) {
+                        return 0;
+                      }
+                      if (a.deliveryDate == null) return 1;
+                      if (b.deliveryDate == null) return -1;
+                      return a.deliveryDate!.compareTo(b.deliveryDate!);
+                    }))
+                  .take(3)
+                  .map((activity) {
                 final grade = viewModel.getGradeForActivity(activity.id);
                 final status = grade?.status ?? 'pending';
 

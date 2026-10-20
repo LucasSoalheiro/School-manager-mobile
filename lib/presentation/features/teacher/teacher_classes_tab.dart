@@ -246,112 +246,126 @@ class _TeacherClassesTabState extends State<TeacherClassesTab> {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: widget.viewModel.loadData,
-        child: widget.viewModel.classes.isEmpty
-            ? Center(
-                child: EmptyState(
-                  icon: Icons.meeting_room_outlined,
-                  title: 'Nenhuma turma encontrada',
-                  message: 'Crie uma nova turma clicando no botão abaixo ou no cabeçalho.',
-                  buttonText: 'Criar Turma',
-                  onButtonPressed: _openCreateClassModal,
-                ),
-              )
-            : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: widget.viewModel.classes.length,
-                itemBuilder: (context, index) {
-                  final schoolClass = widget.viewModel.classes[index];
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: ExpansionTile(
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.class_rounded,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      title: Text(
-                        schoolClass.name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                        ),
-                      ),
-                      subtitle: Text(
-                        '${schoolClass.students.length} alunos • ${schoolClass.activities.length} atividades',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface
-                              .withValues(alpha: 0.6),
-                          fontSize: 13,
-                        ),
-                      ),
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primary,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                ),
-                                icon: const Icon(
-                                  Icons.add_task_rounded,
-                                  size: 18,
-                                ),
-                                label: const Text('Nova Atividade nesta Turma'),
-                                onPressed: () =>
-                                    _openCreateActivityModal(schoolClass),
-                              ),
-                              const SizedBox(height: 10),
-                              if (schoolClass.activities.isNotEmpty) ...[
-                                const Text(
-                                  'Atividades:',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                ...schoolClass.activities.map(
-                                  (a) => ListTile(
-                                    dense: true,
-                                    contentPadding: EdgeInsets.zero,
-                                    leading: const Icon(
-                                      Icons.description_outlined,
-                                      size: 20,
-                                    ),
-                                    title: Text(a.title),
-                                    subtitle: Text(
-                                      a.description,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+      body: Column(
+        children: [
+          if (widget.viewModel.errorMessage != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Text(
+                widget.viewModel.errorMessage!,
+                style: const TextStyle(color: AppColors.error, fontSize: 13),
               ),
+            ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: widget.viewModel.loadData,
+              child: widget.viewModel.classes.isEmpty
+                  ? Center(
+                      child: EmptyState(
+                        icon: Icons.meeting_room_outlined,
+                        title: 'Nenhuma turma encontrada',
+                        message:
+                            'Crie uma nova turma clicando no botão abaixo ou no cabeçalho.',
+                        buttonText: 'Criar Turma',
+                        onButtonPressed: _openCreateClassModal,
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: widget.viewModel.classes.length,
+                      itemBuilder: (context, index) {
+                        final schoolClass = widget.viewModel.classes[index];
+                        return _buildClassCard(context, schoolClass);
+                      },
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildClassCard(BuildContext context, SchoolClassEntity schoolClass) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ExpansionTile(
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Icon(
+            Icons.class_rounded,
+            color: AppColors.primary,
+          ),
+        ),
+        title: Text(
+          schoolClass.name,
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 16,
+          ),
+        ),
+        subtitle: Text(
+          '${schoolClass.students.length} alunos • ${schoolClass.activities.length} atividades',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+            fontSize: 13,
+          ),
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  icon: const Icon(
+                    Icons.add_task_rounded,
+                    size: 18,
+                  ),
+                  label: const Text('Nova Atividade nesta Turma'),
+                  onPressed: () => _openCreateActivityModal(schoolClass),
+                ),
+                const SizedBox(height: 10),
+                if (schoolClass.activities.isNotEmpty) ...[
+                  const Text(
+                    'Atividades:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  ...schoolClass.activities.map(
+                    (a) => ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(
+                        Icons.description_outlined,
+                        size: 20,
+                      ),
+                      title: Text(a.title),
+                      subtitle: Text(
+                        a.description,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

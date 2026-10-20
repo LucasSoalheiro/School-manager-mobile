@@ -31,10 +31,23 @@ class StudentClassesTab extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: () async => viewModel.loadData(),
       child: viewModel.classes.isEmpty
-          ? const Center(
-              child: Text(
-                'Você ainda não está matriculado em nenhuma turma.',
-                style: TextStyle(fontSize: 16),
+          ? Center(
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    'Você ainda não está matriculado em nenhuma turma.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.7),
+                    ),
+                  ),
+                ),
               ),
             )
           : ListView.builder(

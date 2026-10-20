@@ -61,7 +61,9 @@ class _TeacherGradingTabState extends State<TeacherGradingTab> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Aluno: ${grade.studentId}',
+                  'Atividade: ${grade.activityTitle ?? 'Não identificada'}\n'
+                  'Aluno: ${_shortId(grade.studentId)}'
+                  '${grade.className != null ? ' • Turma: ${grade.className}' : ''}',
                   style: const TextStyle(
                     fontSize: 13,
                     color: AppColors.textSecondaryLight,
@@ -144,102 +146,126 @@ class _TeacherGradingTabState extends State<TeacherGradingTab> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Correções Pendentes')),
-      body: RefreshIndicator(
-        onRefresh: widget.viewModel.loadData,
-        child: widget.viewModel.pendingGrades.isEmpty
-            ? Center(
-                child: EmptyState(
-                  icon: Icons.done_all_rounded,
-                  title: 'Nenhuma submissão para corrigir',
-                  message: 'Quando os alunos entregarem suas atividades, elas aparecerão aqui para você lançar a nota e o feedback.',
-                  buttonText: 'Atualizar Lista',
-                  onButtonPressed: widget.viewModel.loadData,
-                ),
-              )
-            : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: widget.viewModel.pendingGrades.length,
-                itemBuilder: (context, index) {
-                  final grade = widget.viewModel.pendingGrades[index];
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: AppColors.warning.withValues(
-                                    alpha: 0.1,
-                                  ),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Icons.assignment_turned_in_outlined,
-                                  color: AppColors.warning,
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Submissão #${grade.id.length > 8 ? grade.id.substring(0, 8) : grade.id}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 15,
-                                      ),
-                                    ),
-                                    Text(
-                                      'ID do Aluno: ${grade.studentId}',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: AppColors.textSecondaryLight,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.warning.withValues(
-                                    alpha: 0.1,
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Text(
-                                  'Aguardando',
-                                  style: TextStyle(
-                                    color: AppColors.warning,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 11,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 14),
-                          CustomButton(
-                            text: 'Avaliar e Lançar Nota',
-                            onPressed: () => _openGradingModal(grade),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+      body: Column(
+        children: [
+          if (widget.viewModel.errorMessage != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Text(
+                widget.viewModel.errorMessage!,
+                style: const TextStyle(color: AppColors.error, fontSize: 13),
               ),
+            ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: widget.viewModel.loadData,
+              child: widget.viewModel.pendingGrades.isEmpty
+                  ? Center(
+                      child: EmptyState(
+                        icon: Icons.done_all_rounded,
+                        title: 'Nenhuma submissão para corrigir',
+                        message:
+                            'Quando os alunos entregarem suas atividades, elas aparecerão aqui para você lançar a nota e o feedback.',
+                        buttonText: 'Atualizar Lista',
+                        onButtonPressed: widget.viewModel.loadData,
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: widget.viewModel.pendingGrades.length,
+                      itemBuilder: (context, index) {
+                        final grade = widget.viewModel.pendingGrades[index];
+                        return _buildPendingGradeCard(context, grade);
+                      },
+                    ),
+            ),
+          ),
+        ],
       ),
     );
   }
+
+  Widget _buildPendingGradeCard(BuildContext context, GradeEntity grade) {
+    final activityTitle = grade.activityTitle;
+    final className = grade.className;
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.warning.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.assignment_turned_in_outlined,
+                    color: AppColors.warning,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        activityTitle?.isNotEmpty == true
+                            ? activityTitle!
+                            : 'Submissão #${_shortId(grade.id)}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        className?.isNotEmpty == true
+                            ? 'Turma: $className • Aluno: ${_shortId(grade.studentId)}'
+                            : 'Aluno: ${_shortId(grade.studentId)}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondaryLight,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.warning.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    'Aguardando',
+                    style: TextStyle(
+                      color: AppColors.warning,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            CustomButton(
+              text: 'Avaliar e Lançar Nota',
+              onPressed: () => _openGradingModal(grade),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _shortId(String id) => id.length > 8 ? id.substring(0, 8) : id;
 }

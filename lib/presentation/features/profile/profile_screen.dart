@@ -94,6 +94,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
 
       await _loadUserProfile();
+      await ServiceLocator.refreshSessionUser();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -106,7 +107,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao atualizar nome: $e'),
+            content: Text('Erro ao atualizar nome: ${_readableError(e)}'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -150,7 +151,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao alterar senha: $e'),
+            content: Text('Erro ao alterar senha: ${_readableError(e)}'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -159,6 +160,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) setState(() => _isSavingPassword = false);
     }
   }
+
+  /// Shows an error message returned by the API instead of the raw
+  /// `Exception: ` prefix.
+  String _readableError(Object error) =>
+      error.toString().replaceAll('Exception: ', '');
 
   void _confirmLogout() {
     showDialog(

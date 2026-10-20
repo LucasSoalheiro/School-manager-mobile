@@ -11,6 +11,7 @@ import '../../domain/repositories/school_class_repository.dart';
 import '../../domain/repositories/activity_repository.dart';
 import '../../domain/repositories/grade_repository.dart';
 import '../../domain/repositories/profile_repository.dart';
+import '../../presentation/features/auth/auth_view_model.dart';
 
 class ServiceLocator {
   static late final SessionStorage sessionStorage;
@@ -22,6 +23,12 @@ class ServiceLocator {
   static late final ActivityRepository activityRepository;
   static late final GradeRepository gradeRepository;
   static late final ProfileRepository profileRepository;
+
+  /// Shared authentication state, assigned right after [setup] in `main`.
+  ///
+  /// It allows the profile screen to refresh the session user (and therefore
+  /// the name shown across the app) after a successful profile update.
+  static AuthViewModel? authViewModel;
 
   static Future<void> setup() async {
     sessionStorage = await SessionStorage.init();
@@ -48,5 +55,10 @@ class ServiceLocator {
     profileRepository = ProfileRepositoryImpl(
       remoteDataSource: remoteDataSource,
     );
+  }
+
+  /// Refreshes the cached session user after profile data changed (e.g. name).
+  static Future<void> refreshSessionUser() async {
+    await authViewModel?.refreshCurrentUser();
   }
 }

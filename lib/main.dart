@@ -14,6 +14,7 @@ void main() async {
   final authViewModel = AuthViewModel(
     authRepository: ServiceLocator.authRepository,
   );
+  ServiceLocator.authViewModel = authViewModel;
 
   ServiceLocator.apiClient.onUnauthorized = () {
     authViewModel.logout();
@@ -50,17 +51,25 @@ class AppRootNavigator extends StatefulWidget {
 }
 
 class _AppRootNavigatorState extends State<AppRootNavigator> {
+  /// Global key used to reset the navigation stack when the session changes
+  /// (login/logout), so screens from a previous session are never reused.
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: widget.authViewModel,
       builder: (context, _) {
         if (!widget.authViewModel.isAuthenticated) {
-          return LoginScreen(
-            authViewModel: widget.authViewModel,
-            onLoginSuccess: () {
-              setState(() {});
-            },
+          return Navigator(
+            key: _navigatorKey,
+            onGenerateRoute: (settings) => MaterialPageRoute(
+              settings: settings,
+              builder: (context) => LoginScreen(
+                authViewModel: widget.authViewModel,
+                onLoginSuccess: () {},
+              ),
+            ),
           );
         }
 

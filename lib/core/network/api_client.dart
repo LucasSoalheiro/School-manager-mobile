@@ -16,6 +16,8 @@ class ApiException implements Exception {
 }
 
 class ApiClient {
+  static const Duration _timeout = Duration(seconds: 15);
+
   final http.Client _client;
   final SessionStorage _sessionStorage;
   void Function()? onUnauthorized;
@@ -47,19 +49,29 @@ class ApiClient {
     return Uri.parse(fullUrl).replace(queryParameters: queryParams);
   }
 
-  Future<dynamic> get(String path, {Map<String, String>? queryParams, bool includeAuth = true}) async {
+  /// Executes an HTTP request and normalizes transport/network failures into
+  /// [ApiException] instances so the presentation layer always receives a
+  /// readable message.
+  Future<dynamic> _send(Future<http.Response> Function() request) async {
     try {
-      final uri = _buildUri(path, queryParams);
-      final response = await _client
-          .get(uri, headers: _buildHeaders(includeAuth: includeAuth))
-          .timeout(const Duration(seconds: 15));
+      final response = await request().timeout(_timeout);
       return _processResponse(response);
     } on SocketException {
       throw ApiException(
         'Não foi possível conectar ao servidor ($_baseUrl). Verifique sua conexão e certifique-se de que a API está rodando.',
       );
+    } on HandshakeException {
+      throw ApiException(
+        'Não foi possível estabelecer uma conexão segura com ($_baseUrl). Verifique o certificado do servidor.',
+      );
+    } on http.ClientException catch (e) {
+      throw ApiException(
+        'Falha de comunicação com o servidor ($_baseUrl): ${e.message}',
+      );
     } on TimeoutException {
-      throw ApiException('A requisição expirou. O servidor demorou muito para responder.');
+      throw ApiException(
+        'A requisição expirou. O servidor demorou muito para responder.',
+      );
     } on ApiException {
       rethrow;
     } catch (e) {
@@ -67,102 +79,64 @@ class ApiClient {
     }
   }
 
+  Future<dynamic> get(String path, {Map<String, String>? queryParams, bool includeAuth = true}) {
+    return _send(
+      () => _client.get(
+        _buildUri(path, queryParams),
+        headers: _buildHeaders(includeAuth: includeAuth),
+      ),
+    );
+  }
+
   Future<dynamic> post(
     String path, {
     Map<String, dynamic>? body,
     bool includeAuth = true,
-  }) async {
-    try {
-      final uri = _buildUri(path);
-      final response = await _client
-          .post(
-            uri,
-            headers: _buildHeaders(includeAuth: includeAuth),
-            body: body != null ? jsonEncode(body) : null,
-          )
-          .timeout(const Duration(seconds: 15));
-      return _processResponse(response);
-    } on SocketException {
-      throw ApiException(
-        'Não foi possível conectar ao servidor ($_baseUrl). Verifique sua conexão e a URL configurada.',
-      );
-    } on TimeoutException {
-      throw ApiException('A requisição expirou.');
-    } on ApiException {
-      rethrow;
-    } catch (e) {
-      throw ApiException('Erro inesperado: $e');
-    }
+  }) {
+    return _send(
+      () => _client.post(
+        _buildUri(path),
+        headers: _buildHeaders(includeAuth: includeAuth),
+        body: body != null ? jsonEncode(body) : null,
+      ),
+    );
   }
 
   Future<dynamic> put(
     String path, {
     Map<String, dynamic>? body,
     bool includeAuth = true,
-  }) async {
-    try {
-      final uri = _buildUri(path);
-      final response = await _client
-          .put(
-            uri,
-            headers: _buildHeaders(includeAuth: includeAuth),
-            body: body != null ? jsonEncode(body) : null,
-          )
-          .timeout(const Duration(seconds: 15));
-      return _processResponse(response);
-    } on SocketException {
-      throw ApiException('Não foi possível conectar ao servidor.');
-    } on TimeoutException {
-      throw ApiException('A requisição expirou.');
-    } on ApiException {
-      rethrow;
-    } catch (e) {
-      throw ApiException('Erro inesperado: $e');
-    }
+  }) {
+    return _send(
+      () => _client.put(
+        _buildUri(path),
+        headers: _buildHeaders(includeAuth: includeAuth),
+        body: body != null ? jsonEncode(body) : null,
+      ),
+    );
   }
 
   Future<dynamic> patch(
     String path, {
     Map<String, dynamic>? body,
     bool includeAuth = true,
-  }) async {
-    try {
-      final uri = _buildUri(path);
-      final response = await _client
-          .patch(
-            uri,
-            headers: _buildHeaders(includeAuth: includeAuth),
-            body: body != null ? jsonEncode(body) : null,
-          )
-          .timeout(const Duration(seconds: 15));
-      return _processResponse(response);
-    } on SocketException {
-      throw ApiException('Não foi possível conectar ao servidor.');
-    } on TimeoutException {
-      throw ApiException('A requisição expirou.');
-    } on ApiException {
-      rethrow;
-    } catch (e) {
-      throw ApiException('Erro inesperado: $e');
-    }
+  }) {
+    return _send(
+      () => _client.patch(
+        _buildUri(path),
+        headers: _buildHeaders(includeAuth: includeAuth),
+        body: body != null ? jsonEncode(body) : null,
+      ),
+    );
   }
 
-  Future<dynamic> delete(String path, {bool includeAuth = true}) async {
-    try {
-      final uri = _buildUri(path);
-      final response = await _client
-          .delete(uri, headers: _buildHeaders(includeAuth: includeAuth))
-          .timeout(const Duration(seconds: 15));
-      return _processResponse(response);
-    } on SocketException {
-      throw ApiException('Não foi possível conectar ao servidor.');
-    } on TimeoutException {
-      throw ApiException('A requisição expirou.');
-    } on ApiException {
-      rethrow;
-    } catch (e) {
-      throw ApiException('Erro inesperado: $e');
-    }
+  Future<dynamic> delete(String path, {bool includeAuth = true}) {
+    return _send(
+      () => _client.delete(
+        _buildUri(path),
+        headers: _buildHeaders(includeAuth: includeAuth),
+      ),
+    );
   }
 
   dynamic _processResponse(http.Response response) {

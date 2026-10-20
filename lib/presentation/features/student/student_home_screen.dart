@@ -31,7 +31,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
   @override
   void initState() {
     super.initState();
-    final studentId = ServiceLocator.sessionStorage.getUserId()!;
+    final studentId = ServiceLocator.sessionStorage.getUserId() ?? '';
     _viewModel = StudentViewModel(
       studentId: studentId,
       schoolClassRepository: ServiceLocator.schoolClassRepository,
@@ -39,6 +39,12 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
     );
     // Load data initially
     _viewModel.loadData();
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
   }
 
   void _onTabChanged(int index) {
@@ -63,7 +69,10 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _tabs[_selectedIndex],
+      body: ListenableBuilder(
+        listenable: _viewModel,
+        builder: (context, _) => _tabs[_selectedIndex],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         type: BottomNavigationBarType.fixed,

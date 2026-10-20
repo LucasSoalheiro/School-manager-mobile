@@ -44,12 +44,12 @@ class AuthViewModel extends ChangeNotifier {
       if (_selectedRole == 'student') {
         _currentUser = await authRepository.loginStudent(
           email.trim(),
-          password.trim(),
+          password,
         );
       } else {
         _currentUser = await authRepository.loginTeacher(
           email.trim(),
-          password.trim(),
+          password,
         );
       }
       _isLoading = false;
@@ -79,14 +79,14 @@ class AuthViewModel extends ChangeNotifier {
           name: name.trim(),
           lastName: lastName.trim(),
           email: email.trim(),
-          password: password.trim(),
+          password: password,
         );
       } else {
         await authRepository.registerTeacher(
           name: name.trim(),
           lastName: lastName.trim(),
           email: email.trim(),
-          password: password.trim(),
+          password: password,
         );
       }
       _isLoading = false;
@@ -103,7 +103,18 @@ class AuthViewModel extends ChangeNotifier {
   Future<void> logout() async {
     await authRepository.logout();
     _currentUser = null;
+    _errorMessage = null;
     notifyListeners();
+  }
+
+  /// Re-reads the persisted session user so the UI reflects updates made on
+  /// the profile screen (for instance, a new first name).
+  Future<void> refreshCurrentUser() async {
+    final user = authRepository.getCurrentUser();
+    if (user != null) {
+      _currentUser = user;
+      notifyListeners();
+    }
   }
 
   bool get isAuthenticated =>

@@ -54,6 +54,19 @@ class _StudentActivitiesTabState extends State<StudentActivitiesTab>
   GradeEntity? _gradeForActivity(String activityId) =>
       widget.viewModel.getGradeForActivity(activityId);
 
+  String _statusLabel(String status) {
+    switch (status) {
+      case 'pending':
+        return 'pendente';
+      case 'submitted':
+        return 'entregue';
+      case 'graded':
+        return 'avaliada';
+      default:
+        return status;
+    }
+  }
+
   /// Returns a filtered list of activities for the given status.
   List<ActivityEntity> _activitiesForStatus(String status) {
     final all = widget.viewModel.allActivities;
@@ -73,7 +86,7 @@ class _StudentActivitiesTabState extends State<StudentActivitiesTab>
       return Center(
         child: EmptyState(
           icon: Icons.assignment_outlined,
-          title: 'Nenhuma atividade $status',
+          title: 'Nenhuma atividade ${_statusLabel(status)}',
           message: 'Você não possui atividades neste estado.',
         ),
       );
@@ -149,6 +162,14 @@ class _StudentActivitiesTabState extends State<StudentActivitiesTab>
       onRefresh: () async => widget.viewModel.loadData(),
       child: Column(
         children: [
+          if (widget.viewModel.errorMessage != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Text(
+                widget.viewModel.errorMessage!,
+                style: const TextStyle(color: AppColors.error, fontSize: 13),
+              ),
+            ),
           TabBar(
             controller: _tabController,
             labelColor: AppColors.primary,

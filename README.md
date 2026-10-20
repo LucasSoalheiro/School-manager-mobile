@@ -73,7 +73,7 @@ O projeto segue estritamente a **Clean Architecture**, promovendo desacoplamento
 └────────────────────────────────────────────────────────┘
 ```
 
-- **Core:** Infraestrutura base, incluindo injeção de dependência simples (`ServiceLocator`), cliente HTTP (`ApiClient`), persistência local criptografada em sessão (`SessionStorage`) e tokens de design (`AppTheme`, `AppColors`).
+- **Core:** Infraestrutura base, incluindo injeção de dependência simples (`ServiceLocator`), cliente HTTP (`ApiClient`), persistência local de sessão via `SharedPreferences` (`SessionStorage`) e tokens de design (`AppTheme`, `AppColors`).
 - **Domain:** A camada central de regras de negócio independente de frameworks. Contém entidades puras (`UserEntity`, `GradeEntity`, `SchoolClassEntity`, `ActivityEntity`) e contratos de repositórios.
 - **Data:** Responsável por converter modelos de dados da API REST (`UserModel`, `GradeModel`, etc.) em entidades de domínio e orquestrar as requisições HTTP através do `RemoteDataSource`.
 - **Presentation:** Camada visual em Flutter utilizando `ChangeNotifier` e `ListenableBuilder` para gerenciamento de estado reativo, desacoplado das regras de negócio.
@@ -82,10 +82,10 @@ O projeto segue estritamente a **Clean Architecture**, promovendo desacoplamento
 
 ## 🛠️ Tecnologias e Dependências
 
-- **Flutter SDK:** >= 3.47.0 (compatível com Dart 3.x)
+- **Flutter SDK:** >= 3.13.0 (compatível com Dart 3.x)
 - **Material 3:** Design moderno, tipografia hierárquica e paleta de cores consistente
 - **http:** Comunicação com a API REST
-- **shared_preferences:** Armazenamento seguro de token JWT, dados do usuário logado e URL customizada
+- **shared_preferences:** Persistência local do token JWT, dados do usuário logado e URL customizada
 - **intl:** Formatação e localização de datas e prazos
 
 ---
@@ -213,7 +213,7 @@ Caso precise testar com uma API rodando na nuvem ou em outro IP da rede local:
 ### 5. Gerenciamento de Perfil e Logout
 1. Na aba **Perfil**, clique no botão **"Sair da Conta"**.
 2. Confirme na caixa de diálogo.
-3. A sessão local (token JWT e cache de usuário) será apagada com segurança e você retornará à tela de Login.
+3. A sessão local (token JWT e cache de usuário) será apagada e você retornará à tela de Login.
 
 ---
 
@@ -300,7 +300,7 @@ school_manager_mobile/
 
 ## 🧪 Testes e Análise Estática
 
-O projeto mantém **0 warnings e 0 erros** no linter estático do Flutter e conta com suíte de testes automatizados.
+O projeto está **livre de warnings e erros** no linter estático do Flutter (`flutter analyze`) e conta com suíte de testes automatizados.
 
 ### Executar Análise de Código:
 ```bash

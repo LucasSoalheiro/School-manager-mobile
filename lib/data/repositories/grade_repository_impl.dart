@@ -1,5 +1,6 @@
 import '../../domain/entities/grade_entity.dart';
 import '../../domain/repositories/grade_repository.dart';
+import '../../core/network/api_client.dart';
 import '../datasources/remote_data_source.dart';
 
 class GradeRepositoryImpl implements GradeRepository {
@@ -51,33 +52,38 @@ class GradeRepositoryImpl implements GradeRepository {
 
   @override
   Future<List<GradeEntity>> getGradesByTeacher(String teacherId) async {
-    try {
-      final grades = await remoteDataSource.getGradesByTeacher(teacherId);
+    final grades = await remoteDataSource.getGradesByTeacher(teacherId);
+    if (grades.isNotEmpty) {
       return grades.map((m) => m.toEntity()).toList();
-    } catch (_) {
-      try {
-        final teacherData = await remoteDataSource.getTeacherById(teacherId);
-        final rawClasses = teacherData['school_classes'] as List<dynamic>? ?? [];
-        final List<GradeEntity> allGrades = [];
+    }
 
-        for (final rawClass in rawClasses) {
-          if (rawClass is Map<String, dynamic> && rawClass['id'] != null) {
-            final classId = rawClass['id'] as String;
-            try {
-              final classDetails = await remoteDataSource.getClassById(classId);
-              for (final activity in classDetails.activities) {
-                final grades = await remoteDataSource.getGradesByActivity(
-                  activity.id,
-                );
-                allGrades.addAll(grades.map((m) => m.toEntity()));
-              }
-            } catch (_) {}
-          }
+    // Fallback: some deployments may not expose /grades/teacher/:id yet.
+    // In that case we rebuild the list from the activities of the classes
+    // assigned to the teacher, without swallowing real errors.
+    try {
+      final teacherData = await remoteDataSource.getTeacherById(teacherId);
+      final rawClasses = teacherData['school_classes'] as List<dynamic>? ?? [];
+      final allGrades = <GradeEntity>[];
+
+      for (final rawClass in rawClasses) {
+        if (rawClass is! Map<String, dynamic> || rawClass['id'] == null) {
+          continue;
         }
-        return allGrades;
-      } catch (_) {
-        return [];
+        final classId = rawClass['id'] as String;
+        final classDetails = await remoteDataSource.getClassById(classId);
+        for (final activity in classDetails.activities) {
+          final activityGrades = await remoteDataSource.getGradesByActivity(
+            activity.id,
+          );
+          allGrades.addAll(activityGrades.map((m) => m.toEntity()));
+        }
       }
+      return allGrades;
+    } on ApiException catch (e) {
+      // Only the "endpoint does not exist" scenario should be treated as an
+      // empty result. Network/timeout failures must reach the UI.
+      if (e.statusCode == 404) return [];
+      rethrow;
     }
   }
 }

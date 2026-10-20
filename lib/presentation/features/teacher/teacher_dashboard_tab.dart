@@ -36,6 +36,13 @@ class TeacherDashboardTab extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (viewModel.errorMessage != null) ...[
+              Text(
+                viewModel.errorMessage!,
+                style: const TextStyle(color: AppColors.error, fontSize: 13),
+              ),
+              const SizedBox(height: 12),
+            ],
             // Banner do Professor
             Container(
               padding: const EdgeInsets.all(20),

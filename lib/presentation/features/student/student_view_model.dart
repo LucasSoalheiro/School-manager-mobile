@@ -21,6 +21,18 @@ class StudentViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  bool _disposed = false;
+
+  void _safeNotify() {
+    if (!_disposed) notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
@@ -39,8 +51,15 @@ class StudentViewModel extends ChangeNotifier {
   // Estatísticas calculadas
   int get totalClasses => _classes.length;
 
+  /// Activities that still need to be delivered by the student.
+  ///
+  /// An activity without a grade record is also considered pending, since the
+  /// grade records are created when the activity is published.
   int get pendingActivitiesCount {
-    return _grades.where((g) => g.isPending).length;
+    return _allActivities.where((activity) {
+      final grade = getGradeForActivity(activity.id);
+      return grade == null || grade.isPending;
+    }).length;
   }
 
   double get averageScore {
@@ -53,7 +72,7 @@ class StudentViewModel extends ChangeNotifier {
   Future<void> loadData() async {
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotify();
 
     try {
       // 1. Busca matrículas e notas do estudante
@@ -86,11 +105,11 @@ class StudentViewModel extends ChangeNotifier {
       _classes = loadedClasses;
       _allActivities = loadedActivities;
       _isLoading = false;
-      notifyListeners();
+      _safeNotify();
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
       _isLoading = false;
-      notifyListeners();
+      _safeNotify();
     }
   }
 
@@ -101,7 +120,7 @@ class StudentViewModel extends ChangeNotifier {
       return true;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
-      notifyListeners();
+      _safeNotify();
       return false;
     }
   }

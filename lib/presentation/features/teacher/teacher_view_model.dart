@@ -26,6 +26,18 @@ class TeacherViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  bool _disposed = false;
+
+  void _safeNotify() {
+    if (!_disposed) notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
@@ -38,9 +50,15 @@ class TeacherViewModel extends ChangeNotifier {
   Future<void> loadData() async {
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotify();
     try {
-      final teacherId = ServiceLocator.sessionStorage.getUserId()!;
+      final teacherId = ServiceLocator.sessionStorage.getUserId();
+      if (teacherId == null || teacherId.isEmpty) {
+        _errorMessage = 'Sessão não encontrada. Faça login novamente.';
+        _isLoading = false;
+        _safeNotify();
+        return;
+      }
       final profile = await ServiceLocator.profileRepository.getProfile(
         teacherId,
         role: 'teacher',
@@ -62,10 +80,10 @@ class TeacherViewModel extends ChangeNotifier {
           .where((g) => g.isSubmitted && !g.isGraded)
           .toList();
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
     }
     _isLoading = false;
-    notifyListeners();
+    _safeNotify();
   }
 
   Future<bool> submitGrade(
@@ -82,8 +100,8 @@ class TeacherViewModel extends ChangeNotifier {
       await loadData();
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
-      notifyListeners();
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _safeNotify();
       return false;
     }
   }
@@ -104,8 +122,8 @@ class TeacherViewModel extends ChangeNotifier {
       await loadData();
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
-      notifyListeners();
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _safeNotify();
       return false;
     }
   }
@@ -116,8 +134,8 @@ class TeacherViewModel extends ChangeNotifier {
       await loadData();
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
-      notifyListeners();
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _safeNotify();
       return false;
     }
   }

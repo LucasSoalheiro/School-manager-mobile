@@ -32,6 +32,12 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
     _viewModel.loadData();
   }
 
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
   void _onTabChanged(int index) {
     setState(() => _selectedIndex = index);
   }
@@ -49,7 +55,10 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _tabs[_selectedIndex],
+      body: ListenableBuilder(
+        listenable: _viewModel,
+        builder: (context, _) => _tabs[_selectedIndex],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         type: BottomNavigationBarType.fixed,

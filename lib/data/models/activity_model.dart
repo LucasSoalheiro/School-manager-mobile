@@ -24,7 +24,8 @@ class ActivityModel {
       description: json['description'] as String? ?? '',
       createdAt: json['created_at'] as String?,
       deliveryDate: json['delivery_date'] as String?,
-      schoolClassId: json['school_class_id'] as String?,
+      schoolClassId:
+          (json['school_class_id'] ?? json['class_id']) as String?,
     );
   }
 
