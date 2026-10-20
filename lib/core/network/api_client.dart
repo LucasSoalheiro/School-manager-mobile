@@ -18,8 +18,9 @@ class ApiException implements Exception {
 class ApiClient {
   final http.Client _client;
   final SessionStorage _sessionStorage;
+  void Function()? onUnauthorized;
 
-  ApiClient({http.Client? client, required this._sessionStorage})
+  ApiClient({http.Client? client, required this._sessionStorage, this.onUnauthorized})
       : _client = client ?? http.Client();
 
   String get _baseUrl => _sessionStorage.getBaseUrl();
@@ -180,6 +181,7 @@ class ApiClient {
 
     if (response.statusCode == 401) {
       unawaited(_sessionStorage.clearSession());
+      onUnauthorized?.call();
     }
 
     // Processamento de mensagens de erro da API

@@ -54,6 +54,24 @@ class ProfileRepositoryImpl implements ProfileRepository {
   }
 
   @override
+  Future<void> updateTeacherName(String teacherId, String name) async {
+    await remoteDataSource.updateTeacherName(teacherId, name);
+  }
+
+  @override
+  Future<void> updateTeacherPassword(
+    String teacherId, {
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    await remoteDataSource.updateTeacherPassword(
+      teacherId,
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+    );
+  }
+
+  @override
   Future<void> assignClassToTeacher(String teacherId, String classId) async {
     await remoteDataSource.assignClassToTeacher(teacherId, classId);
   }

@@ -15,6 +15,10 @@ void main() async {
     authRepository: ServiceLocator.authRepository,
   );
 
+  ServiceLocator.apiClient.onUnauthorized = () {
+    authViewModel.logout();
+  };
+
   runApp(SchoolManagerApp(authViewModel: authViewModel));
 }
 

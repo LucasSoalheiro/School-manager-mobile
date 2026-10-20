@@ -34,7 +34,7 @@ Abra um **segundo terminal**:
 
 ```bash
 # 1. Navegue até a pasta do app
-cd school_manager_mobile
+cd School-manager-mobile
 
 # 2. Obtenha os pacotes
 flutter pub get

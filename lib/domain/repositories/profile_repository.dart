@@ -10,6 +10,12 @@ abstract class ProfileRepository {
     required String currentPassword,
     required String newPassword,
   });
+  Future<void> updateTeacherName(String teacherId, String name);
+  Future<void> updateTeacherPassword(
+    String teacherId, {
+    required String currentPassword,
+    required String newPassword,
+  });
   Future<void> assignClassToTeacher(String teacherId, String classId);
   Future<void> removeClassFromTeacher(String teacherId, String classId);
 }

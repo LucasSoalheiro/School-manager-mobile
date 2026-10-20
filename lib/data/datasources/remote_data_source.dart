@@ -76,6 +76,17 @@ class RemoteDataSource {
     );
   }
 
+  Future<List<UserModel>> getStudents() async {
+    final response = await _apiClient.get(ApiConstants.students);
+    if (response is List) {
+      return response
+          .whereType<Map<String, dynamic>>()
+          .map((json) => UserModel.fromJson(json, defaultRole: 'student'))
+          .toList();
+    }
+    return [];
+  }
+
   // 3. Teachers
   Future<Map<String, dynamic>> registerTeacher({
     required String name,
@@ -110,6 +121,27 @@ class RemoteDataSource {
 
   Future<void> removeClassFromTeacher(String teacherId, String classId) async {
     await _apiClient.delete(ApiConstants.teacherClassDelete(teacherId, classId));
+  }
+
+  Future<void> updateTeacherName(String id, String name) async {
+    await _apiClient.patch(
+      ApiConstants.teacherName(id),
+      body: {'name': name},
+    );
+  }
+
+  Future<void> updateTeacherPassword(
+    String id, {
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    await _apiClient.patch(
+      ApiConstants.teacherPassword(id),
+      body: {
+        'current_password': currentPassword,
+        'new_password': newPassword,
+      },
+    );
   }
 
   // 4. Classes
@@ -229,6 +261,17 @@ class RemoteDataSource {
 
   Future<List<GradeModel>> getGradesByActivity(String activityId) async {
     final response = await _apiClient.get(ApiConstants.gradesByActivity(activityId));
+    if (response is List) {
+      return response
+          .whereType<Map<String, dynamic>>()
+          .map((json) => GradeModel.fromJson(json))
+          .toList();
+    }
+    return [];
+  }
+
+  Future<List<GradeModel>> getGradesByTeacher(String teacherId) async {
+    final response = await _apiClient.get(ApiConstants.gradesByTeacher(teacherId));
     if (response is List) {
       return response
           .whereType<Map<String, dynamic>>()

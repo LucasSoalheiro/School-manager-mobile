@@ -52,27 +52,32 @@ class GradeRepositoryImpl implements GradeRepository {
   @override
   Future<List<GradeEntity>> getGradesByTeacher(String teacherId) async {
     try {
-      final teacherData = await remoteDataSource.getTeacherById(teacherId);
-      final rawClasses = teacherData['school_classes'] as List<dynamic>? ?? [];
-      final List<GradeEntity> allGrades = [];
-
-      for (final rawClass in rawClasses) {
-        if (rawClass is Map<String, dynamic> && rawClass['id'] != null) {
-          final classId = rawClass['id'] as String;
-          try {
-            final classDetails = await remoteDataSource.getClassById(classId);
-            for (final activity in classDetails.activities) {
-              final grades = await remoteDataSource.getGradesByActivity(
-                activity.id,
-              );
-              allGrades.addAll(grades.map((m) => m.toEntity()));
-            }
-          } catch (_) {}
-        }
-      }
-      return allGrades;
+      final grades = await remoteDataSource.getGradesByTeacher(teacherId);
+      return grades.map((m) => m.toEntity()).toList();
     } catch (_) {
-      return [];
+      try {
+        final teacherData = await remoteDataSource.getTeacherById(teacherId);
+        final rawClasses = teacherData['school_classes'] as List<dynamic>? ?? [];
+        final List<GradeEntity> allGrades = [];
+
+        for (final rawClass in rawClasses) {
+          if (rawClass is Map<String, dynamic> && rawClass['id'] != null) {
+            final classId = rawClass['id'] as String;
+            try {
+              final classDetails = await remoteDataSource.getClassById(classId);
+              for (final activity in classDetails.activities) {
+                final grades = await remoteDataSource.getGradesByActivity(
+                  activity.id,
+                );
+                allGrades.addAll(grades.map((m) => m.toEntity()));
+              }
+            } catch (_) {}
+          }
+        }
+        return allGrades;
+      } catch (_) {
+        return [];
+      }
     }
   }
 }

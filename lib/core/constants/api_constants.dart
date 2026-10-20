@@ -24,6 +24,8 @@ class ApiConstants {
   // Teachers
   static const String teachers = '/teachers';
   static String teacherById(String id) => '/teachers/$id';
+  static String teacherName(String id) => '/teachers/$id/name';
+  static String teacherPassword(String id) => '/teachers/$id/password';
   static String teacherClasses(String teacherId) => '/teachers/$teacherId/classes';
   static String teacherClassDelete(String teacherId, String classId) =>
       '/teachers/$teacherId/classes/$classId';
@@ -56,4 +58,6 @@ class ApiConstants {
   static String gradesByStudent(String studentId) => '/grades/student/$studentId';
   static String gradesByActivity(String activityId) =>
       '/grades/activity/$activityId';
+  static String gradesByTeacher(String teacherId) =>
+      '/grades/teacher/$teacherId';
 }

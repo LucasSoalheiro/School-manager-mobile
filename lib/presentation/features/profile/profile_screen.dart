@@ -87,16 +87,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _nameController.text.trim(),
         );
       } else {
-        // Professores
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Edição de perfil para professores não suportada na API',
-            ),
-          ),
+        await ServiceLocator.profileRepository.updateTeacherName(
+          _user!.id,
+          _nameController.text.trim(),
         );
-        setState(() => _isSavingName = false);
-        return;
       }
 
       await _loadUserProfile();
@@ -135,15 +129,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           newPassword: _newPasswordController.text,
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Alteração de senha para professores não suportada na API',
-            ),
-          ),
+        await ServiceLocator.profileRepository.updateTeacherPassword(
+          _user!.id,
+          currentPassword: _currentPasswordController.text,
+          newPassword: _newPasswordController.text,
         );
-        setState(() => _isSavingPassword = false);
-        return;
       }
 
       _currentPasswordController.clear();
@@ -293,7 +283,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 28),
 
             // Card de Edição de Nome
-            if (user.isStudent) ...[
+            if (user.isStudent || user.isTeacher) ...[
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
